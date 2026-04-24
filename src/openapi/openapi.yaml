@@ -1,0 +1,35 @@
+openapi: 3.0.3
+info:
+  title: dew-lingo API
+  description: |
+    Contract between the dew-lingo backend and frontend.
+    This spec is the single source of truth — backend interfaces and
+    frontend client types are generated from it.
+  version: 0.1.0
+servers:
+  - url: http://localhost:8080
+    description: Local backend
+tags:
+  - name: health
+    description: Service health and version probes.
+security: []
+paths:
+  /api/health:
+    $ref: './paths/health.yaml'
+components:
+  schemas:
+    Problem:
+      $ref: './components/schemas/common.yaml#/Problem'
+    Level:
+      $ref: './components/schemas/common.yaml#/Level'
+    HealthStatus:
+      $ref: './components/schemas/common.yaml#/HealthStatus'
+  responses:
+    BadRequest:
+      $ref: './components/responses/errors.yaml#/BadRequest'
+    NotFound:
+      $ref: './components/responses/errors.yaml#/NotFound'
+    UnprocessableEntity:
+      $ref: './components/responses/errors.yaml#/UnprocessableEntity'
+    InternalServerError:
+      $ref: './components/responses/errors.yaml#/InternalServerError'

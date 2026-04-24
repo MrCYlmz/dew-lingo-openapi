@@ -1,0 +1,17 @@
+get:
+  operationId: getHealth
+  summary: Service liveness probe.
+  description: |
+    Returns 200 with a status payload when the service is up.
+    Intended for container health checks and the frontend's startup
+    smoke test of the contract pipeline.
+  tags: [health]
+  responses:
+    '200':
+      description: Service is up.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/common.yaml#/HealthStatus'
+    '500':
+      $ref: '../components/responses/errors.yaml#/InternalServerError'
