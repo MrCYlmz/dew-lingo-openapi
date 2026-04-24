@@ -1,0 +1,16 @@
+{
+  "name": "dew-lingo-openapi-build",
+  "version": "0.1.0",
+  "description": "Build harness for the dew-lingo OpenAPI contract. Not published.",
+  "private": true,
+  "scripts": {
+    "lint": "redocly lint src/openapi/openapi.yaml",
+    "bundle": "redocly bundle src/openapi/openapi.yaml -o target/openapi.bundled.yaml",
+    "gen:ts": "openapi-generator-cli generate -i target/openapi.bundled.yaml -g typescript-fetch -o target/typescript-client --additional-properties=npmName=@dew-lingo/api-client,npmVersion=0.1.0,supportsES6=true,withInterfaces=true,typescriptThreePlus=true",
+    "pack:ts": "cd target/typescript-client && npm install --silent && npm run build && npm pack && mv dew-lingo-api-client-*.tgz .."
+  },
+  "devDependencies": {
+    "@redocly/cli": "^1.25.11",
+    "@openapitools/openapi-generator-cli": "^2.15.3"
+  }
+}

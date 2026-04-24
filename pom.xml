@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.mrDew</groupId>
+    <artifactId>dew-lingo-api</artifactId>
+    <version>0.1.0</version>
+    <packaging>jar</packaging>
+    <name>dew-lingo-api</name>
+    <description>Generated Spring API interfaces and DTOs for the dew-lingo OpenAPI contract.</description>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <spring-boot.version>3.5.14</spring-boot.version>
+        <openapi-generator.version>7.10.0</openapi-generator.version>
+        <frontend-maven-plugin.version>1.15.1</frontend-maven-plugin.version>
+        <node.version>v22.11.0</node.version>
+        <npm.version>10.9.0</npm.version>
+        <swagger-annotations.version>2.2.25</swagger-annotations.version>
+
+        <bundled-spec>${project.build.directory}/openapi.bundled.yaml</bundled-spec>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- Required by the spring generator template output. Versions managed via the BOM above. -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations-jakarta</artifactId>
+            <version>${swagger-annotations.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+              frontend-maven-plugin orchestrates the Node-based steps: lint,
+              bundle, TypeScript codegen, npm pack. It installs a pinned Node
+              into target/node/ so no host npm is required.
+              Execution order within a phase follows pom declaration order.
+            -->
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>${frontend-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>install-node-and-npm</id>
+                        <goals><goal>install-node-and-npm</goal></goals>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <nodeVersion>${node.version}</nodeVersion>
+                            <npmVersion>${npm.version}</npmVersion>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-install</id>
+                        <goals><goal>npm</goal></goals>
+                        <phase>initialize</phase>
+                        <configuration><arguments>install --no-audit --no-fund</arguments></configuration>
+                    </execution>
+                    <execution>
+                        <id>spec-lint</id>
+                        <goals><goal>npm</goal></goals>
+                        <phase>initialize</phase>
+                        <configuration><arguments>run lint</arguments></configuration>
+                    </execution>
+                    <execution>
+                        <id>spec-bundle</id>
+                        <goals><goal>npm</goal></goals>
+                        <phase>generate-sources</phase>
+                        <configuration><arguments>run bundle</arguments></configuration>
+                    </execution>
+                    <execution>
+                        <id>typescript-generate</id>
+                        <goals><goal>npm</goal></goals>
+                        <phase>package</phase>
+                        <configuration><arguments>run gen:ts</arguments></configuration>
+                    </execution>
+                    <execution>
+                        <id>typescript-pack</id>
+                        <goals><goal>npm</goal></goals>
+                        <phase>package</phase>
+                        <configuration><arguments>run pack:ts</arguments></configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--
+              Generates Spring interfaces + DTOs from the bundled spec.
+              interfaceOnly=true means consumers implement the API; no controller
+              skeletons or stubs are emitted.
+            -->
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>${openapi-generator.version}</version>
+                <executions>
+                    <execution>
+                        <id>java-spring-generate</id>
+                        <goals><goal>generate</goal></goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <inputSpec>${bundled-spec}</inputSpec>
+                            <generatorName>spring</generatorName>
+                            <library>spring-boot</library>
+                            <apiPackage>com.mrdew.dewlingo.api</apiPackage>
+                            <modelPackage>com.mrdew.dewlingo.model</modelPackage>
+                            <invokerPackage>com.mrdew.dewlingo</invokerPackage>
+                            <generateApiTests>false</generateApiTests>
+                            <generateModelTests>false</generateModelTests>
+                            <generateApiDocumentation>false</generateApiDocumentation>
+                            <generateModelDocumentation>false</generateModelDocumentation>
+                            <generateSupportingFiles>false</generateSupportingFiles>
+                            <configOptions>
+                                <interfaceOnly>true</interfaceOnly>
+                                <useTags>true</useTags>
+                                <useSpringBoot3>true</useSpringBoot3>
+                                <useJakartaEe>true</useJakartaEe>
+                                <dateLibrary>java8</dateLibrary>
+                                <openApiNullable>false</openApiNullable>
+                                <skipDefaultInterface>true</skipDefaultInterface>
+                                <documentationProvider>none</documentationProvider>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
