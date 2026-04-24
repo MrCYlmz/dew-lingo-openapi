@@ -1,0 +1,29 @@
+BadRequest:
+  description: The request was malformed or failed validation.
+  content:
+    application/problem+json:
+      schema:
+        $ref: '../schemas/common.yaml#/Problem'
+
+NotFound:
+  description: The requested resource does not exist.
+  content:
+    application/problem+json:
+      schema:
+        $ref: '../schemas/common.yaml#/Problem'
+
+UnprocessableEntity:
+  description: |
+    The request was syntactically valid but cannot be processed —
+    e.g., business rule violation or AI output rejected after repair.
+  content:
+    application/problem+json:
+      schema:
+        $ref: '../schemas/common.yaml#/Problem'
+
+InternalServerError:
+  description: Unexpected server error.
+  content:
+    application/problem+json:
+      schema:
+        $ref: '../schemas/common.yaml#/Problem'

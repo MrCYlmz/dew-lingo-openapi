@@ -1,0 +1,20 @@
+apis:
+  main:
+    root: src/openapi/openapi.yaml
+
+extends:
+  - recommended
+
+rules:
+  operation-operationId: error
+  operation-tag-defined: error
+  no-unresolved-refs: error
+  no-unused-components: warn
+  operation-4xx-response: warn
+  operation-summary: error
+  operation-description: warn
+  # Local-first MVP: localhost is intentional, not a placeholder.
+  no-server-example.com: off
+  # No license URL because the project is proprietary without a public URL.
+  info-license-strict: off
+
