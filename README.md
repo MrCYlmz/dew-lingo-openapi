@@ -9,12 +9,18 @@ as normal dependencies.
 | Target   | Coordinates                                | Output of `mvn install`                                  |
 |----------|--------------------------------------------|----------------------------------------------------------|
 | Backend  | `com.mrDew:dew-lingo-api:<version>` (JAR)  | Installed to `~/.m2/repository/com/mrDew/dew-lingo-api/` |
-| Frontend | `@dew-lingo/api-client@<version>` (npm)    | `target/dew-lingo-api-client-<version>.tgz`              |
+| Frontend | `@dew-lingo/api-client@<version>` (npm)    | Build dir at `target/typescript-client/`                 |
 
-The npm tgz is consumed locally via a `file:` reference for now. When
-a third consumer appears or this leaves single-machine dev, publish to
-Verdaccio (planned for the top-level docker compose) or a hosted registry —
-the workflow stays identical, only the registry URL changes.
+**Local dev distribution:** Symmetric on both sides — local cache, no
+remote registry, "always latest build."
+
+- Backend resolves the JAR from `~/.m2` (standard Maven local cache).
+- Frontend uses `npm link` against `target/typescript-client/`.
+
+**Prod / CI distribution (planned):** GitHub Actions in this module's
+repo will publish the JAR and the npm package to GitHub Packages on
+git tag push. Consumers will switch to registry-resolved deps. Set up
+when iteration moves beyond single-developer MVP.
 
 ## Build
 
@@ -32,8 +38,10 @@ Runs the full pipeline:
 6. **Compile** and **package** the Java JAR.
 7. **Install** the JAR to the local Maven repository.
 8. **Generate** the TypeScript fetch client into `target/typescript-client/`.
-9. `npm install && npm run build && npm pack` the TS client →
-   `target/dew-lingo-api-client-<version>.tgz`.
+9. `npm install && npm run build` the TS client (compiles `dist/`).
+10. `npm pack` the TS client → `target/dew-lingo-api-client-<version>.tgz`
+    (kept as a build artifact for CI publishing later; not the local
+    consumption path).
 
 ## Spec layout
 
@@ -88,13 +96,22 @@ Implement controllers against the generated interfaces in
 
 ### Frontend (`../dew-lingo-fe`)
 
-Until Verdaccio is running, depend on the local tgz:
+Local dev uses `npm link`. One-time setup:
 
 ```bash
-npm install ../dew-lingo-openapi/target/dew-lingo-api-client-0.1.0.tgz
+# In dew-lingo-openapi (after mvn install) — register the build output globally
+cd target/typescript-client && npm link
+
+# In dew-lingo-fe — link the registered package into node_modules
+npm run link:api-client
 ```
 
-Once Verdaccio is in place, switch to a registry-resolved version:
+After that, every subsequent `mvn install` here rebuilds the linked
+package in place — the FE picks it up without re-running `npm link`
+or the `link:api-client` script.
+
+Once GitHub Actions publishing is in place, switch to a registry-resolved
+version:
 
 ```json
 "@dew-lingo/api-client": "^0.1.0"
